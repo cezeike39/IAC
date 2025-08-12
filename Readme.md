@@ -49,4 +49,4 @@ This Terraform configuration creates a basic AWS networking setup including a VP
 2. Initialize Terraform:
 
    ```bash
-   terraform init
+   terraform init..
