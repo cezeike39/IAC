@@ -1,23 +1,37 @@
-provider "aws" {
-  region = "us-west-2"
-}
+# VPC Configration
 resource "aws_vpc" "main" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
+
+  cidr_block       = var.vpc_config.cidr
+  instance_tenancy = var.vpc_config.instance_tenancy
 
   tags = {
-    Name = "chisom"
+    Name = var.vpc_config.name
   }
 }
 
-#public subnet 
+# Function: cidrsubnet(prefix, newbits, netnum)
 
+# Example VPC CIDR: 10.0.0.0/16 (prefix = 16)
+
+# Calculating new bits (newbits):
+# /24 -> (16 + x = 24) = 8 bits
+# /16 -> (16 +x = 16) = 0 bits
+# /28 -> (16 + x = 28) = 12 bits
+
+# Calculating new network number (netnum):
+# Formular: Between 0 and 2^(newbits) - 1
+# Subnet index [0, 1, 2, 3, 4, 5, 6, 7...]
+
+# 8 bits:
+# network number: (2^8) - 1 = 255
+
+# Public subnet 
 resource "aws_subnet" "public" {
   vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnet_config.public_sn_new_bits, var.subnet_config.public_sn_netnum)
 
   tags = {
-    Name = "public-sn"
+    Name = var.subnet_config.public_sn_name
   }
 }
 
@@ -63,15 +77,16 @@ resource "aws_nat_gateway" "main" {
   depends_on = [aws_internet_gateway.gw]
 }
 
-#private subnet
+# Private subnet
 resource "aws_subnet" "private" {
   vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.11.0/24"
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, var.subnet_config.private_sn_new_bits, var.subnet_config.private_sn_netnum)
 
   tags = {
-    Name = "private-sn"
+    Name = var.subnet_config.private_sn_name
   }
 }
+
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
   tags = {
@@ -85,36 +100,20 @@ resource "aws_route" "private_nat_route" {
   nat_gateway_id         = aws_nat_gateway.main.id
 }
 
-resource "aws_route_table_association" "b" {
+resource "aws_route_table_association" "route" {
   subnet_id      = aws_subnet.private.id
   route_table_id = aws_route_table.private_rt.id
 }
 
 
-# Ec2 Instance
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-}
-
-
-resource "aws_instance" "example" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.public.id
-  associate_public_ip_address = true
+# EC2 Instance
+resource "aws_instance" "ec2" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.ec2_config.type
+  subnet_id                   = aws_subnet.public.id
+  associate_public_ip_address = var.ec2_config.associate_public_ip_address
 
   tags = {
-    Name = "chisom"
+    Name = var.ec2_config.name
   }
 }
