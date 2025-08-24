@@ -1,52 +1,97 @@
 # Terraform AWS VPC and EC2 Setup
 
-This Terraform configuration creates a basic AWS networking setup including a VPC, public and private subnets, internet gateway, NAT gateway, route tables, and launches an EC2 instance in the public subnet.
+This Terraform configuration provisions a basic AWS networking setup, including a VPC, public and private subnets, internet gateway, NAT gateway, route tables, and an EC2 instance in the public subnet.
 
-## Resources Created
+---
 
-- **VPC:**  
-  A Virtual Private Cloud with CIDR block `10.0.0.0/16`.
+## 📦 Resources Created
 
-- **Public Subnet:**  
-  CIDR block `10.0.1.0/24`, with routing to the internet via an Internet Gateway.
+### Networking
+- **VPC**
+  - CIDR block: `10.0.0.0/16`
+- **Public Subnet**
+  - CIDR block: `10.0.1.0/24`
+  - Routes internet traffic via an **Internet Gateway**.
+- **Private Subnet**
+  - CIDR block: `10.0.11.0/24`
+  - Routes internet traffic via a **NAT Gateway**.
+- **Internet Gateway**
+  - Attached to the VPC for internet access for public subnet resources.
+- **Elastic IP**
+  - Allocated for the NAT Gateway.
+- **NAT Gateway**
+  - Allows outbound internet access for resources in the private subnet.
 
-- **Private Subnet:**  
-  CIDR block `10.0.11.0/24`, with routing to the internet through a NAT Gateway.
+### Routing
+- **Public Route Table**
+  - Routes traffic to the Internet Gateway.
+- **Private Route Table**
+  - Routes traffic to the NAT Gateway.
+- **Route Table Associations**
+  - Public subnet → Public route table
+  - Private subnet → Private route table
 
-- **Internet Gateway:**  
-  Attached to the VPC for internet access for public subnet resources.
+### Compute
+- **EC2 Instance**
+  - Launched in the public subnet.
+  - AMI: Latest **Ubuntu 20.04 LTS** (x86_64)
+  - Instance type: `t3.micro`
+  - Public IP assigned.
 
-- **Elastic IP:**  
-  Allocated for the NAT Gateway.git checkout -b feature/your-feature-name
+---
 
+## 🛠 Prerequisites
 
-- **NAT Gateway:**  
-  Allows outbound internet access for resources in the private subnet.
+- Terraform **v1.0+** installed
+- AWS CLI configured with an IAM user/role that can create VPC, EC2, and related resources
+- AWS account with required permissions and limits
+- (Optional) Terraform Cloud account if you want to use remote state
 
-- **Route Tables:**  
-  - Public route table with route to the Internet Gateway.  
-  - Private route table with route to the NAT Gateway.
+---
 
-- **Route Table Associations:**  
-  Associating public subnet with the public route table and private subnet with the private route table.
+## 🚀 Usage
 
-- **EC2 Instance:**  
-  - Launched in the public subnet.  
-  - Uses the latest Ubuntu 20.04 LTS AMI (x86_64).  
-  - Instance type: `t3.micro`.  
-  - Assigned a public IP address.
+### 1️⃣ Clone the repository
 
-## Prerequisites
+## Configure Terraform Cloud (Optional)
 
-- Terraform installed (version 1.0 or newer recommended)  
-- AWS CLI configured with credentials having permissions to create VPC, EC2, and related resources.  
-- AWS account with appropriate limits and permissions.
+terraform {
+  cloud {
+    organization = "cezeike39"
 
-## Usage
+    workspaces {
+      project = "Learn Terraform"
+      name    = "aws-network-provisioning"
+    }
+  }
+}
 
-1. Clone this repo (if applicable) or place the Terraform files in a directory.
+If you want to use Terraform Cloud:
+Replace organization, project, and name with your own values from Terraform Cloud.
 
-2. Initialize Terraform:
+If you want to use local state instead:
+Remove the entire cloud { ... } block.
 
-   ```bash
-   terraform init
+Optionally, add a local backend:
+
+terraform {
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+
+## Initialize Terraform
+terraform init
+
+## Preview resources to be created
+terraform plan
+
+## Apply the configuration
+terraform apply
+
+## Destroy resources when done
+terraform destroy
+
+## ⚠️ Cost Warning
+This setup creates AWS resources that may incur charges.
+Remember to run terraform destroy when you no longer need them.
