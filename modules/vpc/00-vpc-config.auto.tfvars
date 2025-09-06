@@ -23,6 +23,6 @@ subnet_config = {
 # EC2 values
 ec2_config = {
   name                        = "terraform-ec2-instance"
-  type                        = "t3.micro"
+  type                        = "t2.micro"
   associate_public_ip_address = false
 }
