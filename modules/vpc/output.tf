@@ -11,10 +11,17 @@ output "priv_sn_id" {
   value       = aws_subnet.private.id
 }
 
-output "instance_id" {
-  value = aws_instance.ec2.id
+# output "instance_id" {
+#  value = aws_instance.ec2.id
+# }
+
+ output "public_ip" {
+  value = aws_instance.ec2.public_ip
+ }
+output "public_subnet_id" {
+  value = aws_subnet.public.id
 }
 
-output "public_ip" {
-  value = aws_instance.ec2.public_ip
+output "ami_id" {
+  value = data.aws_ami.ubuntu.id
 }

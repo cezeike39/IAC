@@ -22,3 +22,11 @@ provider "aws" {
   # region = "us-west-2"
   region = var.region
 }
+
+terraform {
+  backend "s3" {
+    bucket = "chisomp-bucket"
+    key    = "terraform/state"
+    region = "us-east-2"
+  }
+}
